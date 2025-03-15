@@ -3,21 +3,30 @@ const User = require("./Models/user"); // ✅ Correct import
 const express = require("express");
 const { ValidateSignUp } = require("./utils/validateUser");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const { userAuth } = require("./middlewares/userAuth");
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
+
+const SECRET_KEY = "supersecret";
 
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email : email });
+    const user = await User.findOne({ email: email });
     if (!user) {
       throw new Error("User not found");
     }
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = user.validatePassword(password);
     if (!isMatch) {
       throw new Error("Invalid password");
     }
+    const token = user.getJWT();
+
+    res.cookie("authToken", token, { httpOnly: true, secure: true });
     res.json({ message: "Login successful" });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -66,6 +75,15 @@ app.delete("/user", async (req, res) => {
     res.send(user);
   } catch {
     res.status(500).send("Server Error");
+  }
+});
+
+app.get("/profile", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.send(user);
+  } catch (err) {
+    res.status(404).send("User Not valid : " + err.message);
   }
 });
 
