@@ -67,7 +67,7 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true }); // ✅ Correct placement of timestamps
 
 userSchema.methods.getJWT = function (){
-    const token = jwt.sign({ id: this._id }, 'yourSecretKey', { expiresIn: '7d' });
+    const token = jwt.sign({ id: this._id }, 'supersecret', { expiresIn: '7d' });
     return token;
 }
 userSchema.methods.validatePassword = function(passwordByUser){

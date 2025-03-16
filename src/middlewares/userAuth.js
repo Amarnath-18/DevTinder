@@ -5,13 +5,14 @@ const userAuth = async (req, res, next) => {
     const { authToken } = req.cookies;
     if (!authToken) {
         console.log(authToken);
-        
       throw new Error("invalid token");
     }
-    const decodedObj = jwt.verify(authToken, "supersecret");
-    const { _id } = decodedObj;
+    const decodedObj = jwt.verify(authToken, 'supersecret');
+    console.log(decodedObj);
+    
+    const { id } = decodedObj;  // Instead of _id
+const user = await User.findById(id);
 
-    const user = await User.findById(_id);
 
     if (!user) {
       throw new Error("User not found");
