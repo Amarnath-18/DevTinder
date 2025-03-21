@@ -26,6 +26,4 @@ const user = await User.findById(id);
   }
 };
 
-module.exports = {
-  userAuth,
-};
+module.exports = userAuth;

@@ -2,7 +2,7 @@ const express = require("express");
 const User = require("../Models/user");
 const profileRouter = express.Router();
 const bcrypt = require("bcrypt");
-const { userAuth } = require("../middlewares/userAuth");
+const userAuth = require("../middlewares/userAuth");
 
 profileRouter.patch("/userUpdate/:userId", async (req, res) => {
   const updatedUser = req.body;
