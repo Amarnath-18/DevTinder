@@ -4,7 +4,7 @@ const User = require("../Models/user");
 const userAuth = require("../middlewares/userAuth");
 const connectionRequest = require("../Models/connectionRequests");
 
-const  USER_SAFE_DATA = "name lastName skills gender photoUrl"
+const  USER_SAFE_DATA = "name lastName skills gender photoUrl age"
 
 
 requestRouter.get("/feed",userAuth, async (req, res) => {
@@ -38,7 +38,7 @@ requestRouter.get("/feed",userAuth, async (req, res) => {
         {_id: {$nin : Array.from(HiddenUserFromFeed)}},
         { _id : {$ne : LoggedInUser._id}}
       ],
-    }).select(USER_SAFE_DATA).skip(skip).limit(limit)
+    }).skip(skip).limit(limit)
     
     res.send(FeedConnections);
 
@@ -59,13 +59,13 @@ requestRouter.post(
       // validate toUserId
       const toUser = await User.findById(toUserId);
       if (!toUser) {
-        return res.status(404).send("User not found");
+        return res.status(404).send("toUser not found");
       }
 
       // validate fromUserId
       const fromUser = await User.findById(fromUserId);
       if (!fromUser) {
-        return res.status(404).send("User not found");
+        return res.status(404).send("fromUser not found");
       }
       // validate status
       if (!status) {

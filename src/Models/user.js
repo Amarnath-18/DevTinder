@@ -38,6 +38,13 @@ const userSchema = new mongoose.Schema({
     },
     age: {
         type: Number,
+        min: 18,
+        max: 99,
+        validate(value) {
+            if (value < 18 || value > 99) {
+                throw new Error('Age should be between 18 and 99');
+            }
+        }
     },
     gender: {
         type: String,

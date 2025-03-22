@@ -9,34 +9,31 @@ profileRouter.patch("/userUpdate/:userId", async (req, res) => {
   const userId = req.params.userId;
 
   try {
-    const ALLOWED_UPDATES = [
-      "userId",
-      "photoUrl",
-      "about",
-      "skills",
-      "gender",
-      "age",
-    ];
-    const isValidUpdate = Object.keys(updatedUser).every((update) =>
+    const ALLOWED_UPDATES = ["photoUrl", "about", "skills", "gender", "age"];
+    const updates = Object.keys(updatedUser);
+
+    // Check if all provided updates are allowed
+    const isValidUpdate = updates.every((update) =>
       ALLOWED_UPDATES.includes(update)
     );
 
     if (!isValidUpdate) {
-      throw new Error("Invalid update");
+      return res.status(400).json({ error: "Invalid update field(s)" });
     }
 
+    // Find user and update with validation
     const user = await User.findByIdAndUpdate(userId, updatedUser, {
-      runValidators: true,
-      returnDocuments: "after",
+      new: true, // Return updated document
+      runValidators: true, // Enforce schema validations
     });
 
     if (!user) {
-      return res.status(404).send({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    res.send({ message: "User updated successfully", user });
+    res.json({ message: "User updated successfully", user });
   } catch (err) {
-    res.status(404).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -53,22 +50,48 @@ profileRouter.get("/profile", userAuth, (req, res) => {
   }
 });
 
-
-profileRouter.patch("/passwordUpdate" , userAuth ,async (req, res) => {
+profileRouter.patch("/passwordUpdate", userAuth, async (req, res) => {
   try {
-    // code to update password goes here
     const { newPassword } = req.body;
-    if(!newPassword){
-      throw new Error("New password required");
-    };
-    const emcryptedPassword = await bcrypt.hash(newPassword, 10);
-    req.user.password = emcryptedPassword;
+    if (!newPassword) {
+      return res.status(400).json({ message: "New password required" });
+    }
+    const encryptedPassword = await bcrypt.hash(newPassword, 10);
+    req.user.password = encryptedPassword;
     await req.user.save();
     res.json({ message: "Password updated successfully" });
   } catch (err) {
     res.status(404).send("User Not valid : " + err.message);
   }
-})
+});
 
+profileRouter.patch("/forgotPassword", async (req, res) => {
+  try {
+    const { newPassword, email, name } = req.body;
+    if (!newPassword) {
+      return res.status(400).json({ message: "New password required" });
+    }
+
+    const user = await User.findOne({
+      $and: [
+        { name: name },
+        { email: email },
+      ],
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or name" });
+    }
+
+    const encryptedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = encryptedPassword;
+    await user.save(); 
+
+    return res.json({ message: "Password updated successfully" });
+
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
 
 module.exports = profileRouter;

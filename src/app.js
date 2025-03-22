@@ -4,8 +4,19 @@ const cookieParser = require("cookie-parser");
 const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/request");
 const userAuthRouter = require("./routes/userAuth");
+const cors = require("cors");
 const app = express();
 
+
+// CORS Configuration
+
+const options = {
+  origin: "http://localhost:5173",
+  credentials: true,
+};
+
+
+app.use(cors(options))
 app.use(express.json());
 app.use(cookieParser());
 

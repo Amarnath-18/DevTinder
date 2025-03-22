@@ -14,16 +14,16 @@ userAuthRouter.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email: email });
     if (!user) {
-      throw new Error("User not found");
+      return res.status(404).json({ message: "Invalid username" });
     }
     const isMatch = user.validatePassword(password);
     if (!isMatch) {
-      throw new Error("Invalid password");
+      return res.status(404).json({ message: "Invalid password" });
     }
     const token = user.getJWT();
 
     res.cookie("authToken", token, { httpOnly: true, secure: true });
-    res.json({ message: "Login successful" });
+    res.json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -44,16 +44,22 @@ userAuthRouter.post("/signUp", async (req, res) => {
     });
     await user.save(); // ✅ Save user to database
 
-    res.status(201).json({ message: "User created successfully", user });
+    res.status(201).json({user: user});
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
 userAuthRouter.post("/logout", (req, res) => {
-  res.clearCookie("authToken");
-  res.json({ message: "Logged out successfully" });
+  res.clearCookie("authToken", {
+    httpOnly: true,
+    secure: true,  // ❗ Set to `false` for local development (if not using HTTPS)
+    sameSite: "none",  // ❗ Set to "lax" if frontend and backend are on the same origin
+  });
+  
+  res.status(200).json({ message: "Logged out successfully" });
 });
+
 
 userAuthRouter.get("/received", userAuth, async (req, res) => {
   const userId = req.user._id;
