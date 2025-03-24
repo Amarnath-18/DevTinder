@@ -10,7 +10,7 @@ const userAuth = async (req, res, next) => {
     const decodedObj = jwt.verify(authToken, 'supersecret');
     console.log(decodedObj);
     
-    const { id } = decodedObj;  // Instead of _id
+    const { id } = decodedObj;
 const user = await User.findById(id);
 
 

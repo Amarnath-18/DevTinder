@@ -3,6 +3,7 @@ const User = require("../Models/user");
 const profileRouter = express.Router();
 const bcrypt = require("bcrypt");
 const userAuth = require("../middlewares/userAuth");
+const connectionRequests = require("../Models/connectionRequests");
 
 profileRouter.patch("/userUpdate/:userId", async (req, res) => {
   const updatedUser = req.body;
@@ -67,11 +68,11 @@ profileRouter.patch("/passwordUpdate", userAuth, async (req, res) => {
 
 profileRouter.patch("/forgotPassword", async (req, res) => {
   try {
-    const { newPassword, email, name } = req.body;
-    if (!newPassword) {
+    const { password, email, name } = req.body;
+    if (!password) {
       return res.status(400).json({ message: "New password required" });
     }
-
+ 
     const user = await User.findOne({
       $and: [
         { name: name },
@@ -83,7 +84,7 @@ profileRouter.patch("/forgotPassword", async (req, res) => {
       return res.status(401).json({ message: "Invalid email or name" });
     }
 
-    const encryptedPassword = await bcrypt.hash(newPassword, 10);
+    const encryptedPassword = await bcrypt.hash(password, 10);
     user.password = encryptedPassword;
     await user.save(); 
 
@@ -93,5 +94,21 @@ profileRouter.patch("/forgotPassword", async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 });
+
+profileRouter.delete("/deleteConnection" , userAuth , async (req, res) => {
+  const userId = req.user._id;
+  
+  try {
+    const connection = await connectionRequests.findOneAndDelete({
+      $or: [
+        { fromUserId: userId, toUserId: req.body.connectionId },
+        { fromUserId: req.body.connectionId, toUserId: userId },
+      ],
+    });
+    
+  } catch (error) {
+    
+  }
+})
 
 module.exports = profileRouter;

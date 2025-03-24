@@ -7,7 +7,7 @@ const connectionRequests = require("../Models/connectionRequests");
 const userAuthRouter = express.Router();
 
 
-const  USER_SAFE_DATA = "name lastName skills gender photoUrl"
+const  USER_SAFE_DATA = "name lastName skills gender photoUrl about "
 
 userAuthRouter.post("/login", async (req, res) => {
   try {
@@ -69,7 +69,7 @@ userAuthRouter.get("/received", userAuth, async (req, res) => {
         toUserId: userId,
         status: "interested",
       })
-      .populate("fromUserId", ["name", "lastName"]);
+      .populate("fromUserId");
     res.json(receivedRequests);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -84,7 +84,7 @@ userAuthRouter.get("/connections", userAuth, async (req, res) => {
         { fromUserId: userId, status: "accepted" },
         { toUserId: userId, status: "accepted" },
       ],
-    }).populate("fromUserId" , USER_SAFE_DATA).populate("toUserId" , USER_SAFE_DATA); // Ensure we get full user objects
+    }).populate("fromUserId").populate("toUserId"); // Ensure we get full user objects
 
     const data = connections.map((e) => {
       const fromUser = e.fromUserId._id?.toString() || e.fromUserId; // Handle both object and string cases
@@ -96,5 +96,47 @@ userAuthRouter.get("/connections", userAuth, async (req, res) => {
     res.status(400).json({ error: "Some error occurred in request connections", details: err.message });
   }
 });
+
+
+userAuthRouter.delete("/delete", userAuth ,  async (req, res) => {
+  const userId = req.body.userId;
+  try {
+    const user = await User.findByIdAndDelete(userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    res.send(user);
+  } catch {
+    res.status(400).send("Server Error");
+  }
+});
+
+userAuthRouter.delete("/deleteConnection" , userAuth , async (req, res) => {
+  const { _id } = req.body;
+  const userId2 = _id;
+  const userId = req.user._id;
+  if (!userId || !userId2) {
+    console.log("User 1" , userId , "User 2" , userId2);
+    
+    return res.status(400).json({ error: "Both userId1 and userId2 are required" });
+  }
+  try {
+    const connection = await connectionRequests.findOneAndDelete( 
+      {
+        $or: [
+          { fromUserId: userId, toUserId: userId2 , status : "accepted" },
+          { fromUserId: userId2, toUserId: userId , status : "accepted" },
+        ]
+      }
+    )
+    if (!connection) {
+      return res.status(404).send("Connection not found");
+    }
+    res.send(connection);
+    
+  } catch (error) {
+    res.status(400).json({ error: "Some error occurred in request connections", details: error.message });
+  }
+})
 
 module.exports = userAuthRouter;

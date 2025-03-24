@@ -6,7 +6,6 @@ const connectionRequest = require("../Models/connectionRequests");
 
 const  USER_SAFE_DATA = "name lastName skills gender photoUrl age"
 
-
 requestRouter.get("/feed",userAuth, async (req, res) => {
   const LoggedInUser = req.user;
   const page = parseInt(req.query.page);
