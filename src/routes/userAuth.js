@@ -22,7 +22,12 @@ userAuthRouter.post("/login", async (req, res) => {
     }
     const token = user.getJWT();
 
-    res.cookie("authToken", token, { httpOnly: true, secure: true });
+    res.cookie("authToken", token, {
+      expires : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      httpOnly: true, // manipulation form server 
+      secure: false, // false for http req 
+      sameSite: 'None' // 
+  });
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
