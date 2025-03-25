@@ -26,7 +26,7 @@ userAuthRouter.post("/login", async (req, res) => {
       expires : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
       httpOnly: true, // manipulation form server 
       secure: false, // false for http req 
-      sameSite: 'None' // 
+      sameSite: 'Lax' // 
   });
     res.json(user);
   } catch (err) {
