@@ -57,10 +57,10 @@ userAuthRouter.post("/signUp", async (req, res) => {
 
 userAuthRouter.post("/logout", (req, res) => {
   res.clearCookie("authToken", {
-    httpOnly: true,
-    secure: true,  // ❗ Set to `false` for local development (if not using HTTPS)
-    sameSite: "none",  // ❗ Set to "lax" if frontend and backend are on the same origin
-  });
+    httpOnly: true, // manipulation form server 
+    secure: false, // false for http req 
+    sameSite: 'Lax' // 
+});
   
   res.status(200).json({ message: "Logged out successfully" });
 });
