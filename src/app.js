@@ -26,6 +26,7 @@ app.use('/user', userAuthRouter);
 // ✅ Connect to MongoDB and Start Server
 app.get("/" , (req , res , next) => {
   console.log("hello");
+  res.send("Running");
   next();
 });
 
